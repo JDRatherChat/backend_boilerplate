@@ -1,0 +1,14 @@
+# Core framework
+Django>=4.2,<5.0
+
+# Environment management
+django-environ
+
+# REST framework
+djangorestframework>=3.16,<3.17
+
+# Database (recommended: psycopg2 for prod, psycopg2-binary for dev/local)
+psycopg2-binary
+
+# For image handling if needed later
+Pillow>=11.0,<12.0

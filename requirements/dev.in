@@ -1,0 +1,26 @@
+-r base.in
+
+# Debugging tools
+ipython
+django-debug-toolbar
+django-extensions
+
+# Code quality and pre-commit hooks
+black
+flake8
+isort
+pre-commit
+
+# Testing
+pytest
+pytest-django
+pytest-cov
+
+# Authentication (optional — move to base.in if always used)
+djangorestframework-simplejwt
+
+# Changelog generation
+commitizen
+
+# Requests
+requests

@@ -1,0 +1,10 @@
+-r base.in
+
+# Production-grade server
+gunicorn
+
+# Static file serving (if not using CDN)
+whitenoise
+
+# Database driver for production
+psycopg2

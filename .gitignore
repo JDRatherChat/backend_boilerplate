@@ -1,0 +1,68 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+.envrc
+environments/*.env
+
+# SQLite database (used for dev/testing)
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Unit test / pytest cache
+.pytest_cache/
+.tox/
+
+# Django stuff
+*.pot
+*.pyc
+db.sqlite3
+
+# Media files (keep folder but not content)
+media/*
+!media/.gitkeep
+
+# Static files (keep folder but not content)
+staticfiles/
+static/*
+!static/.gitkeep
+
+# Sphinx documentation
+docs/_build/
+
+# pip-tools generated files
+requirements/*.txt
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*~
+
+# OS-specific
+.DS_Store
+Thumbs.db
