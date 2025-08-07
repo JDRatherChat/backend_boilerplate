@@ -31,26 +31,41 @@ settings, and built-in authentication.
 
 ## Quick Start
 
-1. **Create your environment**
+1. **Clone the template**
+   ```bash
+   git clone https://github.com/<your-org>/backend_boilerplate.git
+   cd backend_boilerplate
+   ```
+
+2. **Create your environment**
    ```bash
    make setup
    ```
+   This command creates a `.venv/` directory and installs dependencies.
+   Activate the virtual environment:
+   
+   ```bash
+   source .venv/bin/activate      # macOS/Linux
+   .venv\Scripts\activate       # Windows
+   ```
 
+3. **Generate a secret key**
 
-2. **Generate a secret key**
+   The default environment file is `environments/dev.env`. Run this after
+   setting up your project to replace the placeholder `SECRET_KEY`:
 
    ```bash
    make secret envfile=environments/dev.env
    ```
 
-3. **Apply initial migrations**
+4. **Apply initial migrations**
 
    ```bash
    python manage.py makemigrations
    python manage.py migrate
    ```
 
-4. **Run the development server**
+5. **Run the development server**
 
    ```bash
    make runserver
