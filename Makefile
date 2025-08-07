@@ -4,7 +4,7 @@ SHELL := /bin/bash
 ENV ?= dev
 PYTHON := $(shell [ -f ".venv/bin/python" ] && echo ".venv/bin/python" || echo ".venv/Scripts/python")
 
-.PHONY: runserver makemigrations migrate shell setup compile venv deps format lint test test-fast commit ship secret superuser smoke
+.PHONY: runserver makemigrations migrate shell setup compile venv deps format lint test test-fast commit push feature release secret superuser smoke
 
 # Run Django development server
 runserver:
@@ -103,20 +103,75 @@ commit:
 	make lint
 	make test-fast
 	@pre-commit run --all-files || (echo "❌ Pre-commit fixed files. Please re-stage and run make commit again." && exit 1)
-	@git add -A
-	@git commit -m "$(m)"
-	@echo "✅ Commit created with message: $(m)"
+        @git add -A
+        @git commit -m "$(m)"
+        @echo "✅ Commit created with message: $(m)"
 
-# Ship versioned release
-ship:
-	@echo "🏷️ Shipping release..."
-	@if git describe --tags --abbrev=0 >/dev/null 2>&1; then \
-		cz bump --changelog; \
-	else \
-		echo "⚡ No previous tag found. Creating initial tag v0.0.1..."; \
-		git tag -a v0.0.1 -m "Release v0.0.1"; \
-		git push origin v0.0.1; \
-	fi
-	VERSION=$$(cz version --project || echo "0.0.1") && \
-		git push --follow-tags
-	@echo "✅ Release $${VERSION} shipped!"
+# Bump commit version and push
+push:
+        @echo "🚀 Bumping commit version and pushing..."
+        @if [ ! -f VERSION ]; then echo "0.0.0" > VERSION; fi; \
+        version=$$(cat VERSION); \
+        IFS='.' read -r rel feat commit <<< $$version; \
+        commit=$$((commit + 1)); \
+        new_version="$$rel.$$feat.$$commit"; \
+        echo $$new_version > VERSION; \
+        cz changelog; \
+        git add VERSION CHANGELOG.md; \
+        if [ -z "$$m" ]; then \
+                msg="chore: version $$new_version"; \
+        else \
+                msg="$$m"; \
+        fi; \
+        git commit -m "$$msg"; \
+        git tag -a "v$$new_version" -m "v$$new_version"; \
+        git push; \
+        git push origin "v$$new_version"; \
+        echo "✅ Pushed v$$new_version"
+
+# Bump feature version and reset commit
+feature:
+        @echo "✨ Starting new feature version..."
+        @if [ ! -f VERSION ]; then echo "0.0.0" > VERSION; fi; \
+        version=$$(cat VERSION); \
+        IFS='.' read -r rel feat commit <<< $$version; \
+        feat=$$((feat + 1)); \
+        commit=0; \
+        new_version="$$rel.$$feat.$$commit"; \
+        echo $$new_version > VERSION; \
+        cz changelog; \
+        git add VERSION CHANGELOG.md; \
+        if [ -z "$$m" ]; then \
+                msg="chore: start feature $$new_version"; \
+        else \
+                msg="$$m"; \
+        fi; \
+        git commit -m "$$msg"; \
+        git tag -a "v$$new_version" -m "v$$new_version"; \
+        git push; \
+        git push origin "v$$new_version"; \
+        echo "✅ Pushed v$$new_version"
+
+# Bump release version and reset feature/commit
+release:
+        @echo "🎉 Starting new release..."
+        @if [ ! -f VERSION ]; then echo "0.0.0" > VERSION; fi; \
+        version=$$(cat VERSION); \
+        IFS='.' read -r rel feat commit <<< $$version; \
+        rel=$$((rel + 1)); \
+        feat=0; \
+        commit=0; \
+        new_version="$$rel.$$feat.$$commit"; \
+        echo $$new_version > VERSION; \
+        cz changelog; \
+        git add VERSION CHANGELOG.md; \
+        if [ -z "$$m" ]; then \
+                msg="chore: start release $$new_version"; \
+        else \
+                msg="$$m"; \
+        fi; \
+        git commit -m "$$msg"; \
+        git tag -a "v$$new_version" -m "v$$new_version"; \
+        git push; \
+        git push origin "v$$new_version"; \
+        echo "✅ Pushed v$$new_version"
