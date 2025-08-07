@@ -18,6 +18,17 @@ settings, and built-in authentication.
 
 ---
 
+## Project Structure
+
+- `apps/` — project apps including the custom user app
+- `config/settings/` — modular Django settings
+- `docs/` — project documentation and guides
+- `environments/` — sample environment variable files
+- `requirements/` — Python dependency specifications
+- `templates/` — HTML templates
+
+---
+
 ## Quick Start
 
 1. **Create your environment**
