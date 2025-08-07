@@ -2,6 +2,7 @@ SHELL := /bin/bash
 
 # Default environment
 ENV ?= dev
+envfile ?= environments/dev.env
 PYTHON := $(shell [ -f ".venv/bin/python" ] && echo ".venv/bin/python" || echo ".venv/Scripts/python")
 
 .PHONY: runserver makemigrations migrate shell setup compile venv deps format lint test test-fast commit push feature release secret superuser smoke
@@ -45,18 +46,15 @@ venv:
 
 # Generate a new Django SECRET_KEY and append it to the env file
 secret:
-	@if [ -z "$(envfile)" ]; then \
-		echo "❌ Please specify envfile: make secret envfile=environments/.dev"; \
-		exit 1; \
-	fi
-	@echo "🔑 Generating Django SECRET_KEY..."
-	SECRET_KEY=$$($(PYTHON) -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"); \
-	if grep -q '^SECRET_KEY=' $(envfile); then \
-		sed -i'' -e "s/^SECRET_KEY=.*/SECRET_KEY=$$SECRET_KEY/" $(envfile); \
-	else \
-		echo "SECRET_KEY=$$SECRET_KEY" >> $(envfile); \
-	fi
-	@echo "✅ SECRET_KEY updated in $(envfile)"
+@echo "🔑 Generating Django SECRET_KEY..."
+@touch $(envfile)
+SECRET_KEY=$$($(PYTHON) -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"); \
+if grep -q '^SECRET_KEY=' $(envfile); then \
+sed -i'' -e "s/^SECRET_KEY=.*/SECRET_KEY=$$SECRET_KEY/" $(envfile); \
+else \
+echo "SECRET_KEY=$$SECRET_KEY" >> $(envfile); \
+fi
+@echo "✅ SECRET_KEY updated in $(envfile)"
 
 # Create superuser
 superuser:
