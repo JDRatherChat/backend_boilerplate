@@ -1,18 +1,18 @@
-# apps/tests/test_urls.py
-import datetime
-import os
+import sys
 
 from django.test import TestCase
 from django.urls import get_resolver, resolve, reverse
 
-LOG_DIR = os.path.join("logs", "test_logs")
-os.makedirs(LOG_DIR, exist_ok=True)
-
 
 class ProjectNamedURLSmokeTests(TestCase):
-    def test_project_named_urls_resolve(self):
-        """Ensure all project app URL names can be reversed and resolved."""
 
+    def test_project_named_urls_resolve(self):
+        """
+        Smoke test to ensure named project URLs can be reversed and resolved.
+
+        - Skips Django admin and debug toolbar routes.
+        - Only tests routes where the resolved view module starts with 'apps.'.
+        """
         resolver = get_resolver()
         route_names = [
             name
@@ -33,21 +33,18 @@ class ProjectNamedURLSmokeTests(TestCase):
                     continue
                 tested_routes.append(route)
                 self.assertEqual(resolved.view_name, route)
-                results.append(f"✅ {route} -> {url}")
+                results.append(f"[OK] {route} -> {url}")
             except Exception as e:
-                results.append(f"❌ {route} failed: {e}")
+                results.append(f"[FAIL] {route}: {e}")
                 self.fail(f"Route '{route}' failed to resolve: {e}")
 
-        # Don’t fail if some routes are skipped — only if none tested
         if not tested_routes:
             self.skipTest("No project routes matched filter — skipped all.")
 
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_path = os.path.join(LOG_DIR, f"url_smoke_{timestamp}.log")
-        with open(log_path, "w", encoding="utf-8") as f:
-            f.write("\n".join(results))
-
-        print(
-            f"\n[SmokeTest] Tested {len(tested_routes)} routes, skipped {len(skipped_routes)}"
+        message = (
+            f"[SmokeTest] Tested {len(tested_routes)} routes, "
+            f"skipped {len(skipped_routes)}"
         )
-        print(f"[SmokeTest] Log saved at {log_path}")
+        print(message)
+        for line in results:
+            print(line, file=sys.stdout)

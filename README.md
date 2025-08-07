@@ -1,135 +1,61 @@
-# Django Cookiecutter Boilerplate 🚀
+# Django Backend Template
 
-A lightweight but production-ready Django boilerplate, designed for rapid project setup with clean defaults, modular
-settings, and built-in authentication.
-
----
+A production-focused Django template with modular settings, Docker-based local development, and robust tooling for code quality, testing, and deployment.
 
 ## Features
 
-- ✅ **Custom User Model** with email-based authentication
-- ✅ **JWT Authentication** ready with `djangorestframework-simplejwt`
-- ✅ **DRF Example** healthcheck endpoint
-- ✅ **Makefile** for easy commands (`make setup`, `make test`, `make ship`)
-- ✅ **Pre-commit hooks** (black, isort, flake8, YAML, whitespace checks)
-- ✅ **CI/CD with GitHub Actions** (linting, tests, releases)
-- ✅ **SQLite by default**; Postgres optional for staging/prod
-- ✅ **Docker support** for Postgres deployments
-
----
+- Custom user model (email-first)
+- Modular settings: base, dev, test, prod
+- Pre-commit hooks for formatting, linting, and hygiene
+- Docker support for local development (PostgreSQL, Redis)
+- CI-ready structure (lint, test, release)
+- Optional: Django REST Framework and JWT authentication
 
 ## Project Structure
 
-- `apps/` — project apps including the custom user app
-- `config/settings/` — modular Django settings
-- `docs/` — project documentation and guides
-- `environments/` — sample environment variable files
-- `requirements/` — Python dependency specifications
+- `apps/` — Django apps (includes the custom user app)
+- `config/settings/` — settings split by environment
+- `docs/` — project documentation
+- `environments/` — example environment files
+- `requirements/` — dependency specifications
+- `tests/` — unit, integration, and smoke tests
 - `templates/` — HTML templates
 
----
+## Quick Start (Local Development)
 
-## Quick Start
-
-1. **Clone the template**
+1. Create and activate a virtual environment:
    ```bash
-   git clone https://github.com/<your-org>/backend_boilerplate.git
-   cd backend_boilerplate
+   python -m venv .venv
+   .venv\Scripts\activate  # Windows
+   source .venv/bin/activate  # macOS/Linux
    ```
 
-2. **Create your environment**
+2. Install dependencies:
    ```bash
-   make setup
-   ```
-   This command creates a `.venv/` directory and installs dependencies.
-   Activate the virtual environment:
-   
-   ```bash
-   source .venv/bin/activate      # macOS/Linux
-   .venv\Scripts\activate       # Windows
+   pip install -r requirements/dev.txt
    ```
 
-3. **Generate a secret key**
+3. Configure environment:
+   - Copy `environments/dev.env` to a local file and adjust values as needed.
+   - Set a strong `SECRET_KEY`.
 
-   The default environment file is `environments/dev.env`. Run this after
-   setting up your project to replace the placeholder `SECRET_KEY`:
-
+4. Apply migrations:
    ```bash
-   make secret envfile=environments/dev.env
-   ```
-
-4. **Apply initial migrations**
-
-   ```bash
-   python manage.py makemigrations
    python manage.py migrate
    ```
 
-5. **Run the development server**
-
+5. Run the server:
    ```bash
-   make runserver
+   python manage.py runserver
    ```
 
----
+## Quick Start (Docker)
 
-## Custom User Model
+- Development:
+  ```bash
+  docker compose up --build
+  ```
 
-This project defines a custom user model at `apps.custom_user.CustomUser` and sets
-`AUTH_USER_MODEL` accordingly. Use `settings.AUTH_USER_MODEL` when creating
-relationships to the user (for example,
-`models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)`). You can
-manage accounts either via the authentication API endpoints or through standard
-Django commands like `python manage.py createsuperuser`.
-
----
-
-## Makefile Commands
-
-* `make setup` — create venv and install dependencies
-* `make install` — install/update requirements
-* `make runserver` — start development server
-* `make makemigrations` — create new migrations
-* `make migrate` — apply migrations
-* `make shell` — open Django shell\_plus
-* `make format` — run black + isort
-* `make lint` — run flake8
-* `make test` — run tests with coverage
-* `make test-fast` — run tests without coverage
-* `make commit m="message"` — run checks + commit
-* `make ship` — bump version & push release
-
----
-
-## Authentication Endpoints
-
-* `POST /api/custom_user/register/` — register new user
-* `POST /api/custom_user/token/` — obtain JWT token
-* `POST /api/custom_user/token/refresh/` — refresh token
-* `GET /api/custom_user/me/` — current user
-
-See [Authentication Docs](docs/authentication.md) for details.
-
----
-
-## Development Guides
-
-* [Authentication](docs/authentication.md)
-* [Contributing](docs/contributing.md)
-* [Environments](docs/environments.md)
-* [Developer Setup](docs/dev_setup.md)
-
----
-
-## CI/CD
-
-* **Linting**: `.github/workflows/lint.yml`
-* **Tests**: `.github/workflows/test.yml`
-* **Release**: `.github/workflows/ship.yml`
-
----
-
-## Version
-
-* Current: **0.1.0**
-
+- Production-like:
+  ```bash
+  docker compose -f docker-compose.yml -f docker-compose.prod.yml up

@@ -1,26 +1,30 @@
-"""
-Testing-specific settings.
-"""
+from .base import *  # noqa: F403
 
-from .base import *
+# Use SQLite for testing
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    },
+}
 
-# Faster password hashing for tests
+# Disable password hashing to speed up tests
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",
 ]
 
-# Lightweight test database
-DATABASES["default"] = env.db(default="sqlite:///test_db.sqlite3")
-
-# Disable debug toolbar if present
-INSTALLED_APPS = [app for app in INSTALLED_APPS if app != "debug_toolbar"]
-MIDDLEWARE = [mw for mw in MIDDLEWARE if "DebugToolbarMiddleware" not in mw]
-
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-    ],
+# Disable logging during tests
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": True,
 }
+
+# Use test cache backend
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    },
+}
+
+# Celery settings for testing
+CELERY_TASK_ALWAYS_EAGER = True

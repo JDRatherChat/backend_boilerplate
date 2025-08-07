@@ -1,70 +1,55 @@
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
-*.so
 
 # Virtual environments
 .venv/
 venv/
 env/
 
-# Environment files
-.env
-.envrc
-environments/*.env
-!environments/base.env
-!environments/dev.env
-
-# SQLite database (used for dev/testing)
-*.sqlite3
-
-# Logs
-*.log
-logs/
-
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-
-# Unit test / pytest cache
-.pytest_cache/
-.tox/
-
-# Django stuff
-*.pot
-*.pyc
-db.sqlite3
-
-# Media files (keep folder but not content)
-media/*
-!media/.gitkeep
-
-# Static files (keep folder but not content)
+# Django
 staticfiles/
-static/*
-!static/.gitkeep
+mediafiles/
+logs/
+*.log
 
-# Sphinx documentation
-docs/_build/
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+junit.xml
 
-# pip-tools generated files
-requirements/*.txt
+# Linters / type checkers / tooling caches
+.mypy_cache/
+.ruff_cache/
+.tox/
+.pyre/
 
-# IDEs and editors
+# Editors / IDE
 .idea/
 .vscode/
-*.swp
-*~
 
-# OS-specific
+# OS files
 .DS_Store
 Thumbs.db
+
+# Environments / secrets (examples can remain)
+.env
+*.env
+environments/*.local.env
+.env.*.local
+
+# Build artifacts / distributions
+build/
+dist/
+wheels/
+*.egg-info/
+*.egg
+
+# Node (if ever used)
+node_modules/
+
+# MkDocs site output (if used)
+site/

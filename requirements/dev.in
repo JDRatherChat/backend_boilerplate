@@ -1,26 +1,21 @@
 -r base.in
 
-# Debugging tools
-ipython
-django-debug-toolbar
-django-extensions
-
-# Code quality and pre-commit hooks
-black
-flake8
-isort
-pre-commit
-
 # Testing
-pytest
-pytest-django
-pytest-cov
+pytest>=8.2.0
+pytest-django>=4.8.0
+model-bakery>=1.18.0
+factory_boy>=3.3.0
+coverage>=7.6.0
 
-# Authentication (optional — move to base.in if always used)
-djangorestframework-simplejwt
+# Linting / formatting
+black>=24.4.2
+isort>=5.13.2
+flake8>=7.1.0
+ruff>=0.5.6
+pre-commit>=3.7.0
 
-# Changelog generation
-commitizen
+# Developer utilities
+django-extensions>=3.2.3
+ipython>=8.25.0
 
-# Requests
-requests
+django-health-check

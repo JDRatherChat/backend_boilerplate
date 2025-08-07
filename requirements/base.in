@@ -1,14 +1,13 @@
 # Core framework
-Django>=4.2,<5.0
+Django>=4.2,<5.3  # Target LTS-compatible range
 
-# Environment management
-django-environ
+# Configuration helpers
+django-environ>=0.11.2
 
-# REST framework
-djangorestframework>=3.16,<3.17
+# Optional REST API stack (uncomment to enable)
+# djangorestframework>=3.15.2
+# djangorestframework-simplejwt>=5.3.1
 
-# Database (recommended: psycopg2 for prod, psycopg2-binary for dev/local)
-psycopg2-binary
-
-# For image handling if needed later
-Pillow>=11.0,<12.0
+# Optional developer experience
+# django-extensions>=3.2.3
+# ipython>=8.25.0

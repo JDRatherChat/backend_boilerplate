@@ -1,53 +1,46 @@
-# Contributing Guide
+# Contributing
 
-Thank you for your interest in contributing 🎉
+Thank you for your interest in contributing.
 
-## Setup
+## Getting Started
 
-1. Clone the repo
-2. Create a virtual environment
-3. Run `make setup`
-4. Start the dev server with `make runserver`
-
-## Branching
-
-- Create a feature branch for your work:
+- Fork the repository and create a feature branch from `main`.
+- Ensure your development environment is set up (see `docs/dev_setup.md`).
+- Install pre-commit hooks:
   ```bash
-  git checkout -b feature/my-feature
-
-````
-
-## Testing
-
-* Run all tests with:
-
-  ```bash
-  make test
-  ```
-* For faster iteration without coverage:
-
-  ```bash
-  make test-fast
+  pre-commit install
+  pre-commit run --all-files
   ```
 
-## Code Style
+## Branching and Commits
 
-* Pre-commit hooks enforce:
-
-    * `black` for formatting
-    * `isort` for import sorting
-    * `flake8` for linting
-
-Run manually:
-
-```bash
-make lint
-```
-
-## Releasing
-
-* Bump version and push with:
-
-  ```bash
-  make ship
+- Use short-lived feature branches: `feature/<short-description>`, `fix/<short-description>`.
+- Write clear commit messages following the pattern:
   ```
+  <type>(<scope>): <summary>
+
+  <body>
+  ```
+  Examples of `<type>`: feat, fix, docs, style, refactor, test, chore.
+
+## Code Style and Quality
+
+- Format code with Black and isort.
+- Lint with Flake8 and Ruff.
+- Add or update tests for any change in behavior.
+- Run the full test suite before opening a PR:
+  ```bash
+  pytest -q
+  ```
+
+## Pull Requests
+
+- Keep PRs focused and small where possible.
+- Describe the problem, the solution, and any alternatives considered.
+- Include screenshots or logs when relevant.
+- Ensure CI checks pass.
+
+## Security
+
+- Do not include secrets in code or commit history.
+- Report security concerns privately to the maintainers.

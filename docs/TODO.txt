@@ -1,6 +1,0 @@
-⚡ Question for you:
-⚡ JD — since we now have consistent test style across core and custom_user, do you want me to show you a pattern for a base test case class (say, BaseAPITestCase) you can inherit from in all future apps? That way, common helpers like self.urls setup and authenticate() live in one place.
-
-Do you want me to also draft a CHANGELOG template section (like “Unreleased”) so future changes automatically go under the right heading before each release? That way, you don’t have to remember the structure every time.
-
-Do you want me to also give you a .cz.toml config file (Commitizen config) so we lock down the tag format as vX.Y.Z and avoid this mismatch again? That way, you won’t ever have to fight with the tag format.
