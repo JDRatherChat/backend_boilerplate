@@ -2,9 +2,9 @@ SHELL := /bin/bash
 
 # Default environment
 ENV ?= dev
-PYTHON := .venv/Scripts/python
+PYTHON := $(shell [ -f ".venv/bin/python" ] && echo ".venv/bin/python" || echo ".venv/Scripts/python")
 
-.PHONY: runserver makemigrations migrate shell setup install deps format lint test test-fast commit ship secret superuser smoke
+.PHONY: runserver makemigrations migrate shell setup compile venv deps format lint test test-fast commit ship secret superuser smoke
 
 # Run Django development server
 runserver:
@@ -24,22 +24,24 @@ shell:
 	$(PYTHON) manage.py shell_plus
 
 # Setup project (new venv)
-setup:
-	@echo "⚙️ Setting up project..."
-	python -m venv .venv
-	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install pip-tools pre-commit commitizen
-	make install
-	pre-commit install
-	@echo "✅ Setup complete! Activate with: source .venv/Scripts/activate"
+setup: venv compile
+        pre-commit install
+        @echo "✅ Setup complete! Activate with: source .venv/bin/activate (or .venv\\Scripts\\activate)"
 
-# Install dependencies only
-install:
-	@echo "📚 Installing dependencies..."
-	pip-compile requirements/base.in
-	pip-compile requirements/$(ENV).in
-	pip-sync requirements/$(ENV).txt
-	@echo "✅ Dependencies installed."
+# Compile requirements
+compile:
+        @echo "📦 Compiling requirements..."
+        @command -v pip-compile >/dev/null || $(PYTHON) -m pip install pip-tools
+        pip-compile requirements/base.in requirements/dev.in -o requirements/dev.txt
+        @echo "✅ Requirements compiled."
+
+# Create virtual environment and install dependencies
+venv:
+        @echo "🐍 Creating virtual environment..."
+        python -m venv .venv
+        $(PYTHON) -m pip install --upgrade pip
+        $(PYTHON) -m pip install -r requirements/dev.txt
+        @echo "✅ Virtual environment ready."
 
 # Generate a new Django SECRET_KEY and append it to the env file
 secret:
@@ -87,8 +89,8 @@ test-fast:
 	@echo "✅ Fast tests complete."
 
 smoke:
-	@echo "🔥 Running URL smoke tests..."
-	.venv/Scripts/python -m pytest apps/tests/test_urls.py -v
+        @echo "🔥 Running URL smoke tests..."
+        $(PYTHON) -m pytest apps/tests/test_urls.py -v
 
 # Commit with quality checks
 commit:
