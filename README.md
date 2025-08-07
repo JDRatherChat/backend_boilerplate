@@ -23,6 +23,7 @@ settings, and built-in authentication.
 1. **Create your environment**
    ```bash
    make setup
+   ```
 
 
 2. **Generate a secret key**
@@ -43,6 +44,17 @@ settings, and built-in authentication.
    ```bash
    make runserver
    ```
+
+---
+
+## Custom User Model
+
+This project defines a custom user model at `apps.custom_user.CustomUser` and sets
+`AUTH_USER_MODEL` accordingly. Use `settings.AUTH_USER_MODEL` when creating
+relationships to the user (for example,
+`models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)`). You can
+manage accounts either via the authentication API endpoints or through standard
+Django commands like `python manage.py createsuperuser`.
 
 ---
 
@@ -95,4 +107,3 @@ See [Authentication Docs](docs/authentication.md) for details.
 
 * Current: **0.1.0**
 
-```
