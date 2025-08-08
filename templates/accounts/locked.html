@@ -1,9 +1,0 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="locked-account">
-  <h2>Account Temporarily Locked</h2>
-  <p>Too many login attempts. Please try again later or contact support.</p>
-  <p>Your account has been locked for {{ cooloff_time }} hour(s).</p>
-</div>
-{% endblock %}
