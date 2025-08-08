@@ -1,61 +1,87 @@
 # Django Backend Template
 
-A production-focused Django template with modular settings, Docker-based local development, and robust tooling for code quality, testing, and deployment.
+A production-focused Django template with modular settings, Docker-based local development, and robust tooling for code
+quality, testing, and deployment.
 
 ## Features
 
 - Custom user model (email-first)
 - Modular settings: base, dev, test, prod
 - Pre-commit hooks for formatting, linting, and hygiene
+- Black (formatting) + Ruff (linting and import sorting)
 - Docker support for local development (PostgreSQL, Redis)
 - CI-ready structure (lint, test, release)
 - Optional: Django REST Framework and JWT authentication
 
 ## Project Structure
 
-- `apps/` — Django apps (includes the custom user app)
+- `apps/` — Django apps
 - `config/settings/` — settings split by environment
-- `docs/` — project documentation
+- `docs/` — project documentation (MkDocs)
 - `environments/` — example environment files
 - `requirements/` — dependency specifications
 - `tests/` — unit, integration, and smoke tests
 - `templates/` — HTML templates
 
-## Quick Start (Local Development)
+## Quick Start
 
-1. Create and activate a virtual environment:
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate  # Windows
-   source .venv/bin/activate  # macOS/Linux
-   ```
+For full setup instructions, see:
 
-2. Install dependencies:
-   ```bash
-   pip install -r requirements/dev.txt
-   ```
+- Getting Started: Installation — docs/getting-started/installation.md
 
-3. Configure environment:
-   - Copy `environments/dev.env` to a local file and adjust values as needed.
-   - Set a strong `SECRET_KEY`.
+Minimal local workflow:
 
-4. Apply migrations:
-   ```bash
-   python manage.py migrate
-   ```
+```bash
+make setup
+make secret
+make migrate
+make runserver
+```
 
-5. Run the server:
-   ```bash
-   python manage.py runserver
-   ```
+Docker workflow (summary):
 
-## Quick Start (Docker)
+```bash
+docker compose up --build
+```
 
-- Development:
-  ```bash
-  docker compose up --build
-  ```
+## Development Shortcuts
 
-- Production-like:
-  ```bash
-  docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+- Start dev stack (containers, migrate, runserver):
+
+```bash
+make dev
+```
+
+- Format and lint:
+
+```bash
+
+make format # Black
+make lint # Ruff
+make lint-fix # Ruff with autofix
+```
+
+- Tests:
+
+```bash
+make test # with coverage
+make test-fast # quick run
+make smoke # smoke tests
+```
+
+## Documentation
+
+Docs are built with MkDocs. Local preview:
+
+```bash
+make docs-serve
+```
+
+## Contributing
+
+See docs/contributing.md for guidance. Use:## Contributing
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```

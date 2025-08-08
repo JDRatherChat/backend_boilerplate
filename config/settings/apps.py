@@ -16,9 +16,9 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
 ]
 
-THIRD_PARTY_APPS = [
-    "rest_framework",
-]
+# Keep environment-agnostic third-party apps here only.
+# Environment-specific apps (like debug_toolbar) should be added in per-env settings (e.g., dev.py).
+THIRD_PARTY_APPS = []
 
 LOCAL_APPS = [
     "apps.custom_user",

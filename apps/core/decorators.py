@@ -1,12 +1,19 @@
+# Python
 from functools import wraps
 
 from django.core.cache import cache
-from django.http import HttpResponseTooManyRequests
-from rest_framework import status
-from rest_framework.response import Response
+from django.http import HttpResponseTooManyRequests, JsonResponse
 
 
-def rate_limit(key_prefix, limit=100, period=3600):
+def rate_limit(key_prefix: str, limit: int = 100, period: int = 3600):
+    """
+    Simple rate limiter using Django cache.
+
+    - key_prefix: logical prefix to distinguish different endpoints/groups.
+    - limit: maximum number of requests allowed within 'period'.
+    - period: time window in seconds.
+    """
+
     def decorator(view_func):
         @wraps(view_func)
         def wrapped_view(request, *args, **kwargs):
@@ -17,18 +24,20 @@ def rate_limit(key_prefix, limit=100, period=3600):
             cache_key = f"rate_limit:{key_prefix}:{client_ip}"
 
             # Get current request count
-            requests = cache.get(cache_key, 0)
+            count = cache.get(cache_key, 0)
 
-            if requests >= limit:
-                if isinstance(request, Response):
-                    return Response(
-                        {"detail": "Request limit exceeded"},
-                        status=status.HTTP_429_TOO_MANY_REQUESTS,
+            if count >= limit:
+                # Prefer a JSON response with 429 where possible
+                try:
+                    return JsonResponse(
+                        {"detail": "Request limit exceeded"}, status=429
                     )
-                return HttpResponseTooManyRequests()
+                except Exception:
+                    # Fallback to plain 429 response
+                    return HttpResponseTooManyRequests()
 
-            # Increment request count
-            cache.set(cache_key, requests + 1, period)
+            # Increment request count and set TTL
+            cache.set(cache_key, count + 1, period)
 
             return view_func(request, *args, **kwargs)
 

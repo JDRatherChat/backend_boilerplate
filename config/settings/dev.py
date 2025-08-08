@@ -1,31 +1,14 @@
-"""
-dev.py
+from importlib import import_module
 
-Development-specific settings.
-"""
+from .base import INSTALLED_APPS, MIDDLEWARE
 
-from .base import *
-from .logging import *
-from .restframework import *
+# Optional dynamic app/middleware injection (you had this logic before)
+# Add apps dynamically in dev without modifying base settings
+DJANGO_APPS = getattr(import_module("apps.core"), "INSTALLED_APPS", [])
+for app_path, middleware_path in DJANGO_APPS:
+    *_, app_label = app_path.rsplit(".", 1)
+    if app_label not in INSTALLED_APPS:
+        INSTALLED_APPS.append(app_label)
 
-DEBUG = True
-
-INSTALLED_APPS += [
-    "django_extensions",
-    "debug_toolbar",
-]
-
-MIDDLEWARE += [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
-]
-
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
-
-# Debug Toolbar Config
-DEBUG_TOOLBAR_CONFIG = {
-    "SHOW_TOOLBAR_CALLBACK": lambda request: True,
-    "RESULTS_CACHE_SIZE": 3,
-    "SHOW_COLLAPSED": True,
-}
+    if middleware_path and middleware_path not in MIDDLEWARE:
+        MIDDLEWARE.append(middleware_path)
