@@ -1,0 +1,15 @@
+-r base.in
+
+# Code formatting
+black
+ruff
+
+# Interactive dev shell
+ipython
+
+# Testing
+pytest
+pytest-django
+
+# Debugging
+django-debug-toolbar
