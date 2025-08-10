@@ -1,15 +1,22 @@
-# Django core
+# ---- Core Django ----
 Django>=4.2,<5.0
 
-# Environment variables
+# ---- Environment variables ----
 django-environ
 
-# PostgreSQL support (optional, can be commented if using SQLite in dev)
+# ---- Database (local dev & CI) ----
+# psycopg v3 with bundled libpq; perfect for Windows/macOS dev boxes
 psycopg[binary]
 
-# Optional: if you use DRF
+# ---- REST API ----
 djangorestframework
+djangorestframework-simplejwt
+drf-spectacular
+# Optional but handy if you want Swagger UI assets without internet
+# drf-spectacular-sidecar
 
-# Optional: if you want Django extensions (shell_plus, etc.)
+# ---- CORS for Vue frontend during dev ----
+django-cors-headers
+
+# ---- Developer utilities ----
 django-extensions
-

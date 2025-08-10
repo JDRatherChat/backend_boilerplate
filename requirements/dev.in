@@ -1,15 +1,19 @@
 -r base.in
 
-# Code formatting
+# ---- Code quality ----
 black
 ruff
 
-# Interactive dev shell
+# ---- Interactive shells ----
 ipython
+ipdb
 
-# Testing
+# ---- Testing ----
 pytest
 pytest-django
+pytest-cov
+model-bakery     # or factory_boy if you prefer factories
+freezegun        # time-sensitive tests
 
-# Debugging
+# ---- Debugging ----
 django-debug-toolbar
