@@ -1,5 +1,13 @@
 -r base.in
 
+# ---- Logging & Observability (dev) ----
+# Optional AWS CloudWatch Logs handler; app should default to no-op if not configured/installed
+watchtower
+
+# ---- Logging & Observability (dev) ----
+# Optional AWS CloudWatch Logs handler; app should default to no-op if not configured/installed
+watchtower
+
 # ---- Code quality ----
 black
 ruff

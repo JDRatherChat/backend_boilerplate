@@ -14,6 +14,28 @@ djangorestframework-simplejwt
 drf-spectacular
 # Optional but handy if you want Swagger UI assets without internet
 # drf-spectacular-sidecar
+djoser
+djoser
+
+# ---- Logging & Observability ----
+# Sentry for error tracking with Django integration
+sentry-sdk[django]
+# Structured logging for better filtering/redaction in line with HIPAA/POPIA
+structlog
+django-structlog
+python-json-logger
+# Note: watchtower (AWS CloudWatch Logs handler) is kept optional and not included here by default.
+# Add it in env-specific requirements (e.g., dev.in/prod.in) and configure app to no-op if missing.
+
+# ---- Logging & Observability ----
+# Sentry for error tracking with Django integration
+sentry-sdk[django]
+# Structured logging for better filtering/redaction in line with HIPAA/POPIA
+structlog
+django-structlog
+python-json-logger
+# Note: watchtower (AWS CloudWatch Logs handler) is kept optional and not included here by default.
+# Add it in env-specific requirements (e.g., dev.in/prod.in) and configure app to no-op if missing.
 
 # ---- CORS for Vue frontend during dev ----
 django-cors-headers
