@@ -1,9 +1,8 @@
-"""Base (prod-safe) requirements.
-
-Notes:
-- This template standardises on Django 4.2 LTS.
-- Keep this file *lean*: only runtime deps.
-"""
+# Base (prod-safe) requirements.
+#
+# Notes:
+# - This template standardises on Django 4.2 LTS.
+# - Keep this file *lean*: only runtime deps.
 
 # ---- Core Django ----
 Django>=4.2,<4.3
