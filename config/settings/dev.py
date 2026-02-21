@@ -6,6 +6,16 @@ This file exists because manage.py currently points to config.settings.dev.
 
 from .base import *  # noqa: F401,F403
 
+import os
+
+import environ
+
+
+# Optionally load dev env file.
+_dev_env = os.path.join(BASE_DIR, "environments", "dev.env")
+if os.path.exists(_dev_env):
+    environ.Env.read_env(_dev_env)
+
 # Dev overrides
 DEBUG = True
 # Allow all hosts for local dev

@@ -1,10 +1,6 @@
-"""
-unit.py
+"""Installed app groups.
 
-Define and organize Django unit into groups:
-- DJANGO_APPS
-- THIRD_PARTY_APPS
-- LOCAL_APPS
+We keep apps grouped so settings remain readable.
 """
 
 
@@ -18,12 +14,14 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    # e.g. "rest_framework",
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "drf_spectacular",
+    "djoser",
+    "corsheaders",
 ]
 
 LOCAL_APPS = [
     "apps.custom_user",  # your app package
 ]
 
-
-# INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS./manage.py check

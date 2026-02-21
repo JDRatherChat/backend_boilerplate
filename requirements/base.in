@@ -1,44 +1,41 @@
+"""Base (prod-safe) requirements.
+
+Notes:
+- This template standardises on Django 4.2 LTS.
+- Keep this file *lean*: only runtime deps.
+"""
+
 # ---- Core Django ----
-Django>=4.2,<5.0
+Django>=4.2,<4.3
 
 # ---- Environment variables ----
 django-environ
 
 # ---- Database (local dev & CI) ----
-# psycopg v3 with bundled libpq; perfect for Windows/macOS dev boxes
+# psycopg v3 with bundled libpq; good for local dev as well.
 psycopg[binary]
 
 # ---- REST API ----
 djangorestframework
 djangorestframework-simplejwt
 drf-spectacular
-# Optional but handy if you want Swagger UI assets without internet
-# drf-spectacular-sidecar
-djoser
 djoser
 
 # ---- Logging & Observability ----
-# Sentry for error tracking with Django integration
 sentry-sdk[django]
-# Structured logging for better filtering/redaction in line with HIPAA/POPIA
 structlog
 django-structlog
 python-json-logger
-# Note: watchtower (AWS CloudWatch Logs handler) is kept optional and not included here by default.
-# Add it in env-specific requirements (e.g., dev.in/prod.in) and configure app to no-op if missing.
-
-# ---- Logging & Observability ----
-# Sentry for error tracking with Django integration
-sentry-sdk[django]
-# Structured logging for better filtering/redaction in line with HIPAA/POPIA
-structlog
-django-structlog
-python-json-logger
-# Note: watchtower (AWS CloudWatch Logs handler) is kept optional and not included here by default.
-# Add it in env-specific requirements (e.g., dev.in/prod.in) and configure app to no-op if missing.
 
 # ---- CORS for Vue frontend during dev ----
 django-cors-headers
 
 # ---- Developer utilities ----
 django-extensions
+
+# ---- Async / Background work ----
+celery
+redis
+
+# ---- Object storage (S3) ----
+django-storages[boto3]

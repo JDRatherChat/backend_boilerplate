@@ -1,0 +1,53 @@
+services:
+  web:
+    build: .
+    command: bash -lc "python scripts/wait_for_db.py && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DATABASE_URL: postgres://app:app@db:5432/app
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: changeme-in-dev
+      DEBUG: "1"
+      ALLOWED_HOSTS: "*"
+    depends_on:
+      - db
+      - redis
+
+  worker:
+    build: .
+    command: bash -lc "python scripts/wait_for_db.py && celery -A config.celery_app worker -l INFO"
+    volumes:
+      - .:/app
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DATABASE_URL: postgres://app:app@db:5432/app
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: changeme-in-dev
+      DEBUG: "1"
+      ALLOWED_HOSTS: "*"
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:

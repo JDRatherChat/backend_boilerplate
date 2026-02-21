@@ -35,7 +35,8 @@ RM_BACKUPS   := rm -f *.bak
 .PHONY: help venv requirements sync install install-dev \
         secret secret-rotate env-check env-fix \
         makemigrations migrate runserver shell \
-        format lint lint-fix test clean
+        format lint lint-fix test clean \
+        docker-up docker-down docker-logs
 
 # -----------------------------
 # Help
@@ -158,3 +159,15 @@ clean: ## Remove caches and build artifacts
 	@find . -type d -name ".pytest_cache" -prune -exec rm -rf {} +
 	@find . -type d -name ".ruff_cache" -prune -exec rm -rf {} +
 	@echo "Clean complete"
+
+# -----------------------------
+# Docker
+# -----------------------------
+docker-up: ## Start Docker dev stack (web + worker + postgres + redis)
+	docker compose up --build
+
+docker-down: ## Stop Docker dev stack
+	docker compose down
+
+docker-logs: ## Tail logs
+	docker compose logs -f --tail=200

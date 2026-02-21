@@ -17,19 +17,13 @@ quality, testing, and deployment.
 
 - `apps/` — Django apps
 - `config/settings/` — settings split by environment
-- `docs/` — project documentation (MkDocs)
-- `environments/` — example environment files
+- `docs/` — project documentation (markdown)
+- `environments/` — local env files (examples committed; secrets not committed)
 - `requirements/` — dependency specifications
 - `tests/` — unit, integration, and smoke tests
 - `templates/` — HTML templates
 
-## Quick Start
-
-For full setup instructions, see:
-
-- Getting Started: Installation — docs/getting-started/installation.md
-
-Minimal local workflow:
+## Quick Start (local, no Docker)
 
 ```bash
 make setup
@@ -38,11 +32,16 @@ make migrate
 make runserver
 ```
 
-Docker workflow (summary):
+## Quick Start (Docker: Postgres + Redis)
 
 ```bash
 docker compose up --build
 ```
+
+The compose stack runs:
+- Django web: http://localhost:8000
+- Postgres: localhost:5432
+- Redis: localhost:6379
 
 ## Development Shortcuts
 
@@ -71,17 +70,9 @@ make smoke # smoke tests
 
 ## Documentation
 
-Docs are built with MkDocs. Local preview:
-
-```bash
-make docs-serve
-```
+See `docs/` for architecture, security, and development workflow notes.
 
 ## Contributing
 
-See docs/contributing.md for guidance. Use:## Contributing
+This template is intended to be copied into new projects.
 
-```bash
-pre-commit install
-pre-commit run --all-files
-```
