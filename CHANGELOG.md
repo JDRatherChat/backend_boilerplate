@@ -6,6 +6,11 @@ The format is based on **Keep a Changelog**, and this project adheres to **Seman
 
 ## [Unreleased]
 
+
+## [0.0.3] - 2026-02-28
+### Added
+- Auto-discovery for `LOCAL_APPS` from the `/apps` folder (e.g. `apps.custom_user`, `apps.users`) to reduce manual settings edits.
+
 ## [0.0.2] - 2026-02-28
 ### Added
 - Hybrid workflow documentation (Docker runtime + optional local venv for tooling).
@@ -31,4 +36,3 @@ The format is based on **Keep a Changelog**, and this project adheres to **Seman
 
 ### Fixed
 - Requirements parsing issue
-

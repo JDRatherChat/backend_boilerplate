@@ -1,7 +1,5 @@
-"""Installed app groups.
-
-We keep apps grouped so settings remain readable.
-"""
+from pathlib import Path
+from typing import List
 
 
 DJANGO_APPS = [
@@ -22,7 +20,24 @@ THIRD_PARTY_APPS = [
     "corsheaders",
 ]
 
-LOCAL_APPS = [
-    "apps.custom_user",  # your app package
-]
 
+def discover_local_apps(base_dir: Path) -> List[str]:
+    apps_dir = base_dir / "apps"
+
+    if not apps_dir.exists():
+        return []
+
+    discovered: List[str] = []
+
+    for entry in apps_dir.iterdir():
+        if not entry.is_dir():
+            continue
+
+        if (entry / "__init__.py").exists() and (entry / "apps.py").exists():
+            discovered.append(f"apps.{entry.name}")
+
+    return sorted(discovered)
+
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+LOCAL_APPS = discover_local_apps(BASE_DIR)
