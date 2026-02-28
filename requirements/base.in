@@ -38,3 +38,6 @@ redis
 
 # ---- Object storage (S3) ----
 django-storages[boto3]
+
+# ---- Shell Plus ----
+django-extensions>=3.2,<4.0

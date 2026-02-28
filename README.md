@@ -1,78 +1,113 @@
-# Django Backend Template
+# Django Backend Boilerplate (Hybrid Dev Workflow)
 
-A production-focused Django template with modular settings, Docker-based local development, and robust tooling for code
-quality, testing, and deployment.
+A production-focused Django template with modular settings, Docker runtime, and a **hybrid** local workflow:
 
-## Features
+- **Docker is the source of truth** for running the app + services (Postgres/Redis/Celery)
+- A **local virtualenv** is used for IDE features and fast tooling (lint/format/unit tests) when you want it
 
-- Custom user model (email-first)
-- Modular settings: base, dev, test, prod
-- Pre-commit hooks for formatting, linting, and hygiene
-- Black (formatting) + Ruff (linting and import sorting)
-- Docker support for local development (PostgreSQL, Redis)
-- CI-ready structure (lint, test, release)
-- Optional: Django REST Framework and JWT authentication
+This keeps your environment reproducible **without slowing down daily coding**.
 
-## Project Structure
+---
 
-- `apps/` — Django apps
-- `config/settings/` — settings split by environment
-- `docs/` — project documentation (markdown)
-- `environments/` — local env files (examples committed; secrets not committed)
-- `requirements/` — dependency specifications
-- `tests/` — unit, integration, and smoke tests
-- `templates/` — HTML templates
+## What’s included
 
-## Quick Start (local, no Docker)
+- Modular settings: `config.settings.{base,dev,test,prod}`
+- Postgres + Redis docker stack
+- Celery worker container
+- `scripts/wait_for_db.py` for reliable DB readiness
+- Ruff + Black + Pytest
+- Pip-tools workflow (requirements `*.in` -> pinned `*.txt`)
+- Example env files (`environments/*.env.example`)
 
-```bash
-make setup
+---
+
+## Quick start (new machine)
+
+### 1) Create env files
+````bash
+make env-fix
 make secret
-make migrate
-make runserver
-```
+make env-check
+````
 
-## Quick Start (Docker: Postgres + Redis)
+Edit:
+- `environments/base.env` (DB name, secrets, redis, etc.)
+- `environments/dev.env` (dev overrides)
 
-```bash
-docker compose up --build
-```
 
-The compose stack runs:
-- Django web: http://localhost:8000
-- Postgres: localhost:5432
-- Redis: localhost:6379
+### 2) Start runtime stack (Docker)
+````bash 
+make docker-up
+````
 
-## Development Shortcuts
+App runs at:
+- http://localhost:8000
 
-- Start dev stack (containers, migrate, runserver):
+### 3) Run DB/migrations inside Docker (recommended)
+````bash
+make d-migrate
+make d-manage ARGS="createsuperuser"
+`````
 
-```bash
-make dev
-```
+### 4) Optional: local venv for PyCharm + fast tooling
+If you want PyCharm indexing + fast lint/tests locally:
+````bash
+# Default venv path: .venv (recommended)
+make install
+make lint
+make test
+`````
 
-- Format and lint:
+To use your preferred per-project naming:
+- create `venv/.<project_name>` and point `.venv` at it, OR
+- run make with `VENV=venv/.<project_name>`
 
-```bash
+Example:
+````bash
+make install VENV=venv/.acme_portal
+make test VENV=venv/.acme_portal
+````
 
-make format # Black
-make lint # Ruff
-make lint-fix # Ruff with autofix
-```
+---
+## Day-to-day commands
+### Docker runtime
 
-- Tests:
+- Start: ```make docker-up```
+- Stop: ```make docker-down```
+- Logs: ```make docker-logs```
+- Shell into container: ```make d-shell```
 
-```bash
-make test # with coverage
-make test-fast # quick run
-make smoke # smoke tests
-```
+### Django (inside Docker)
+- Migrate: ```make d-migrate```
+- Makemigrations: ```make d-makemigrations```
+- Start app: ```make d-startapp APP=users```
+- Manage command: ```make d-manage ARGS="createsuperuser"```
 
-## Documentation
+### Tooling (local venv)
+- Format: ```make format```
+- Lint: ```make lint```
+- Tests: ```make test```
 
-See `docs/` for architecture, security, and development workflow notes.
+---
+## PyCharm Pro recommended setup (hybrid)
+### 1. Interpreter: point PyCharm to your local venv (```.venv``` or ```venv/.<name>```)
 
-## Contributing
+### 2. Django support:
+   - Settings → Languages & Frameworks → Django
+   - Settings module: ```config.settings.dev```
+   - Manage.py: ```manage.py```
 
-This template is intended to be copied into new projects.
+### 3. Database tool window:
+   - Connect to Postgres at ```localhost:${POSTGRES_PORT:-5432}```
 
+Runtime continues to run in Docker; you use local env for editor comfort + quick checks.
+
+---
+## Docs
+- Setup guide: ```docs/setup_hybrid.md```
+- Git cheat sheet: ```docs/git.md```
+
+---
+## License
+
+Internal / template use.

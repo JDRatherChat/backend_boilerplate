@@ -1,53 +1,59 @@
 services:
   web:
     build: .
-    command: bash -lc "python scripts/wait_for_db.py && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: bash -lc "scripts/run_web.sh"
     volumes:
       - .:/app
     ports:
-      - "8000:8000"
+      - "${DJANGO_PORT:-8000}:8000"
+    env_file:
+      - environments/base.env
+      - environments/dev.env
     environment:
+      # Explicit so it's always clear what config is active in Docker
       DJANGO_SETTINGS_MODULE: config.settings.dev
-      DATABASE_URL: postgres://app:app@db:5432/app
-      REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: changeme-in-dev
-      DEBUG: "1"
-      ALLOWED_HOSTS: "*"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   worker:
     build: .
-    command: bash -lc "python scripts/wait_for_db.py && celery -A config.celery_app worker -l INFO"
+    command: bash -lc "scripts/run_worker.sh"
     volumes:
       - .:/app
+    env_file:
+      - environments/base.env
+      - environments/dev.env
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.dev
-      DATABASE_URL: postgres://app:app@db:5432/app
-      REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: changeme-in-dev
-      DEBUG: "1"
-      ALLOWED_HOSTS: "*"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   db:
     image: postgres:16
     environment:
-      POSTGRES_DB: app
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
 
   redis:
     image: redis:7
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
 
 volumes:
   postgres_data:

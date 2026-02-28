@@ -7,15 +7,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# System deps
+# System deps (keep minimal; add others only when needed)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential curl \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install python deps
+# Install python deps (use pinned dev.txt for reproducible builds)
 COPY requirements/ /app/requirements/
 RUN pip install --no-cache-dir -U pip \
-    && pip install --no-cache-dir -r /app/requirements/dev.in
+    && pip install --no-cache-dir -r /app/requirements/dev.txt
 
 # Copy project
 COPY . /app/
@@ -26,4 +28,5 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["bash", "-lc", "python scripts/wait_for_db.py && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+# Keep container startup logic in scripts (easier to read/change than long compose commands)
+CMD ["bash", "-lc", "scripts/run_web.sh"]
