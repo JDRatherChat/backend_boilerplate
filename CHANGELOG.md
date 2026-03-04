@@ -9,7 +9,7 @@ The format is based on **Keep a Changelog**, and this project adheres to **Seman
 ### Changed
 
 
-## [0.0.4] - 2026-03-04
+## [0.1.0] - 2026-03-04
 ### Added
 - Default stack is now API-only (removed Celery/Redis from the default template).
 - Simplified docker-compose to just web + Postgres.

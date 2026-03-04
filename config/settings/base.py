@@ -9,10 +9,10 @@ from pathlib import Path
 
 import environ
 
+from .api_docs import SPECTACULAR_SETTINGS  # noqa: F401
 from .apps import DJANGO_APPS, LOCAL_APPS, THIRD_PARTY_APPS
 from .logging import LOGGING  # noqa: F401
 from .restframework import REST_FRAMEWORK  # noqa: F401
-from .api_docs import SPECTACULAR_SETTINGS  # noqa: F401
 from .sentry import init_sentry
 
 # Directories
