@@ -1,123 +1,113 @@
-# Django Backend Boilerplate (Hybrid Dev Workflow)
+# Django Backend Boilerplate (API-first, Postgres-first)
 
-A production-focused Django template with modular settings, Docker runtime, and a **hybrid** local workflow:
+A lean, production-shaped Django template for building **REST APIs**.
 
-- **Docker is the source of truth** for running the app + services (Postgres/Redis/Celery)
-- A **local virtualenv** is used for IDE features and fast tooling (lint/format/unit tests) when you want it
+- **Postgres-first** in all environments (dev/test/prod)
+- **ENV-based settings selection**: `ENV=dev`, `ENV=test`, `ENV=prod`
+- **API docs** via drf-spectacular (Redoc + Swagger UI)
+- **Sentry** optional (initialises only when `SENTRY_DSN` is set)
+- **Deterministic tooling**: ruff + black + pytest + pre-commit
+- **CI scaffolding**: GitHub Actions (lint + tests with Postgres, Python 3.12/3.13)
 
-This keeps your environment reproducible **without slowing down daily coding**.
+Docker is supported, but **optional** (web + Postgres only) to keep the default template lean.
 
 ---
 
 ## What’s included
 
 - Modular settings: `config.settings.{base,dev,test,prod}`
-- Postgres + Redis docker stack
-- Celery worker container
+- Env loader: `environments/base.env` + `environments/<ENV>.env`
+- Postgres (local) + optional Docker compose (web + Postgres)
 - `scripts/wait_for_db.py` for reliable DB readiness
-- Ruff + Black + Pytest
-- Pip-tools workflow (requirements `*.in` -> pinned `*.txt`)
-- Example env files (`environments/*.env.example`)
-- OpenAPI schema + docs via drf-spectacular (Redoc + Swagger UI)
+- OpenAPI schema + docs:
+  - `/api/schema/`
+  - `/api/docs/` (Redoc)
+  - `/api/swagger/` (Swagger UI)
 
 ---
 
-## Quick start (new machine)
+## Quick start (local)
 
 ### 1) Create env files
-````bash
+
+```bash
 make env-fix
 make secret
-make env-check
-````
+```
 
-Edit:
-- `environments/base.env` (DB name, secrets, redis, etc.)
-- `environments/dev.env` (dev overrides)
+### 2) Create local databases
 
+```bash
+createdb backend_boilerplate
+createdb backend_boilerplate_test
+```
 
-### 2) Start runtime stack (Docker)
-````bash 
-make docker-up
-````
+### 3) Install deps + migrate
 
-App runs at:
-- http://localhost:8000
-
-### 3) Run DB/migrations inside Docker (recommended)
-````bash
-make d-migrate
-make d-manage ARGS="createsuperuser"
-`````
-
-### 4) Optional: local venv for PyCharm + fast tooling
-If you want PyCharm indexing + fast lint/tests locally:
-````bash
-# Default venv path: .venv (recommended)
+```bash
 make install
-make lint
-make test
-`````
+make migrate ENV=dev
+```
 
-To use your preferred per-project naming:
-- create `venv/.<project_name>` and point `.venv` at it, OR
-- run make with `VENV=venv/.<project_name>`
+### 4) Run
 
-Example:
-````bash
-make install VENV=venv/.acme_portal
-make test VENV=venv/.acme_portal
-````
+```bash
+make runserver ENV=dev
+```
 
 ---
-## Day-to-day commands
+
+## Optional: Docker runtime
+
+```bash
+make docker-up
+```
+
+Run migrations in Docker:
+
+```bash
+make d-migrate ENV=dev_docker
+```
+
+---
+
+## Day-to-day
+
+### Lint / format
+
+```bash
+make lint
+make format
+```
+
+### Tests
+
+```bash
+make test
+```
 
 ### API docs
 
-Once the server is running, you can view:
+Once the server is running:
 
 - OpenAPI schema: `http://127.0.0.1:8000/api/schema/`
 - Redoc: `http://127.0.0.1:8000/api/docs/`
 - Swagger UI: `http://127.0.0.1:8000/api/swagger/`
 
-### Docker runtime
+### Sentry (optional)
 
-- Start: ```make docker-up```
-- Stop: ```make docker-down```
-- Logs: ```make docker-logs```
-- Shell into container: ```make d-shell```
-
-### Django (inside Docker)
-- Migrate: ```make d-migrate```
-- Makemigrations: ```make d-makemigrations```
-- Start app: ```make d-startapp APP=users```
-- Manage command: ```make d-manage ARGS="createsuperuser"```
-
-### Tooling (local venv)
-- Format: ```make format```
-- Lint: ```make lint```
-- Tests: ```make test```
+Sentry is initialised only when `SENTRY_DSN` is set.
 
 ---
-## PyCharm Pro recommended setup (hybrid)
-### 1. Interpreter: point PyCharm to your local venv (```.venv``` or ```venv/.<name>```)
 
-### 2. Django support:
-   - Settings → Languages & Frameworks → Django
-   - Settings module: ```config.settings.dev```
-   - Manage.py: ```manage.py```
+## CI
 
-### 3. Database tool window:
-   - Connect to Postgres at ```localhost:${POSTGRES_PORT:-5432}```
-
-Runtime continues to run in Docker; you use local env for editor comfort + quick checks.
+GitHub Actions runs:
+- `pre-commit run --all-files`
+- `pytest` against Postgres (Python 3.12 and 3.13)
 
 ---
-## Docs
-- Setup guide: ```docs/setup_hybrid.md```
-- Git cheat sheet: ```docs/git.md```
 
----
-## License
+## Batteries (when you need them)
 
-Internal / template use.
+This template intentionally ships **lean**. When you need background workers, caching, or object storage, add them as a project-specific profile (Celery/Redis/S3) without refactoring your core API.

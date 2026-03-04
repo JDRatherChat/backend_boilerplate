@@ -1,15 +1,11 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-# ==============================================================================
-# Hybrid workflow (recommended):
-# - Docker is the runtime (web/worker/db/redis)
-# - Local venv is for IDE + fast tooling (ruff/black/pytest) when you want it
-#
-# You can use either:
-#   Option A: .venv symlink/junction -> points at venv/.<name>
-#   Option B: Set VENV=venv/.<name> when calling make
-# ==============================================================================
+# ============================================================================== 
+# API-first hybrid workflow
+# - Local venv: IDE + tooling (ruff/black/pytest/pre-commit)
+# - Docker: optional runtime (web + postgres)
+# ============================================================================== 
 
 # -----------------------------
 # Virtualenv-aware tool shims
@@ -29,43 +25,28 @@ PIP_SYNC     := $(PIPTOOLS) sync
 BLACK        := $(PY) -m black
 RUFF         := $(PY) -m ruff
 PYTEST       := $(PY) -m pytest
-DJANGO       := $(PY) manage.py
+PRECOMMIT    := $(PY) -m pre_commit
 
-# Optional: uv helpers (uv must be installed separately)
-UV := uv
-
-# -----------------------------
-# Env files (Django settings)
-# -----------------------------
-ENV_DIR      := environments
-ENV_FILES    := $(ENV_DIR)/base.env $(ENV_DIR)/dev.env
-
-# Active Django environment (settings module)
+# Active Django environment (maps to config.settings.<ENV>)
 ENV ?= dev
 
-# sed in-place that works on macOS and Linux (creates .bak we later remove)
-SED_INPLACE  := sed -i.bak
-RM_BACKUPS   := rm -f *.bak
+# Env files (used by both local runs and Docker)
+ENV_DIR := environments
 
-# -----------------------------
-# Phony targets
-# -----------------------------
-.PHONY: help venv requirements sync install install-dev \
-        uv-venv uv-install uv-sync \
-        secret secret-rotate env-check env-fix \
-        makemigrations migrate runserver shell \
-        format lint lint-fix test clean \
-        docker-up docker-down docker-logs \
-        d-shell d-manage d-makemigrations d-migrate d-test d-startapp
+.PHONY: help \
+	venv requirements sync install \
+	env-fix secret secret-rotate \
+	makemigrations migrate runserver shell shell-plus \
+	format lint lint-fix test clean \
+	pre-commit-install pre-commit-run \
+	docker-up docker-down docker-logs \
+	d-shell d-manage d-makemigrations d-migrate d-test d-startapp
 
-# -----------------------------
-# Help
-# -----------------------------
 help: ## Show available targets
 	@grep -E '^[a-zA-Z0-9_.-]+:.*?## ' $(MAKEFILE_LIST) | sed 's/:.*##/\t-/' | sort
 
 # ==============================================================================
-# Local venv + tooling (for IDE + fast local checks)
+# Local venv + deps
 # ==============================================================================
 
 venv: ## Create local virtualenv if missing (defaults to VENV=.venv)
@@ -86,107 +67,86 @@ requirements: venv ## Compile requirements with pip-tools (base.in/dev.in -> bas
 	@echo "Compiling dev requirements  -> requirements/dev.txt ..."
 	$(PIP_COMPILE) requirements/dev.in  -o requirements/dev.txt
 
-sync: requirements ## Install pinned deps (dev includes base)
+sync: venv ## Install pinned deps (dev includes base)
 	@echo "Syncing pinned dependencies from requirements/dev.txt ..."
 	$(PIP_SYNC) requirements/dev.txt
 	@echo "Dependencies installed"
 
 install: sync ## Bootstrap local dev environment (alias)
 
-install-dev: sync ## Same as install (explicit name)
-
-# -----------------------------
-# uv (optional)
-# -----------------------------
-uv-venv: ## Create venv using uv (example: make uv-venv VENV=venv/.acme_portal)
-	@command -v $(UV) >/dev/null 2>&1 || (echo "uv not found. Install uv first." && exit 1)
-	$(UV) venv $(VENV)
-
-uv-install: ## Install tooling deps using uv + requirements/dev.txt (fast)
-	@command -v $(UV) >/dev/null 2>&1 || (echo "uv not found. Install uv first." && exit 1)
-	$(UV) pip install -r requirements/dev.txt
-
-uv-sync: uv-venv uv-install ## Convenience: create venv + install deps via uv
-
 # ==============================================================================
-# Env utilities (Django env files used by Docker and local runs)
+# Env utilities
 # ==============================================================================
-
-secret: venv ## Ensure each env has a SECRET_KEY (does not overwrite existing)
-	@mkdir -p $(ENV_DIR)
-	@for f in $(ENV_FILES); do \
-		touch $$f; \
-		if grep -q '^SECRET_KEY=' $$f; then \
-			echo "SECRET_KEY already present in $$f (leaving as-is)"; \
-		else \
-			SECRET=$$($(PY) -c "import secrets; alphabet='abcdefghijklmnopqrstuvwxyz0123456789!@#$$%^&*(-_=+)'; print(''.join(secrets.choice(alphabet) for _ in range(50)))"); \
-			printf 'SECRET_KEY=\"%s\"\n' "$$SECRET" >> $$f; \
-			echo "Added SECRET_KEY to $$f"; \
-		fi; \
-	done
-
-secret-rotate: venv ## Rotate SECRET_KEY in all env files (overwrites existing)
-	@mkdir -p $(ENV_DIR)
-	@for f in $(ENV_FILES); do \
-		touch $$f; \
-		$(SED_INPLACE) '/^SECRET_KEY=/d' $$f; \
-		SECRET=$$($(PY) -c "import secrets; alphabet='abcdefghijklmnopqrstuvwxyz0123456789!@#$$%^&*(-_=+)'; print(''.join(secrets.choice(alphabet) for _ in range(50)))"); \
-		printf 'SECRET_KEY=\"%s\"\n' "$$SECRET" >> $$f; \
-		$(RM_BACKUPS); \
-		echo "Rotated SECRET_KEY in $$f"; \
-	done
-
-env-check: ## Show which env files exist + key variables present
-	@echo "Checking env files..."
-	@for f in $(ENV_FILES); do \
-		if [ -f $$f ]; then \
-			echo "✓ $$f"; \
-			head -n 20 $$f | sed 's/SECRET_KEY=.*/SECRET_KEY=\"***\"/'; \
-		else \
-			echo "✗ $$f (missing)"; \
-		fi; \
-	done
 
 env-fix: ## Create env files from examples if missing (does not overwrite)
 	@mkdir -p $(ENV_DIR)
-	@[ -f $(ENV_DIR)/base.env ] || cp $(ENV_DIR)/base.env.example $(ENV_DIR)/base.env
-	@[ -f $(ENV_DIR)/dev.env ]  || cp $(ENV_DIR)/dev.env.example  $(ENV_DIR)/dev.env
-	@echo "Ensured $(ENV_DIR)/base.env and $(ENV_DIR)/dev.env exist (copied from examples if missing)."
+	@[ -f $(ENV_DIR)/base.env ]       || cp $(ENV_DIR)/base.env.example       $(ENV_DIR)/base.env
+	@[ -f $(ENV_DIR)/dev.env ]        || cp $(ENV_DIR)/dev.env.example        $(ENV_DIR)/dev.env
+	@[ -f $(ENV_DIR)/dev_docker.env ] || cp $(ENV_DIR)/dev_docker.env.example $(ENV_DIR)/dev_docker.env
+	@[ -f $(ENV_DIR)/test.env ]       || cp $(ENV_DIR)/test.env.example       $(ENV_DIR)/test.env
+	@echo "Ensured env files exist (copied from examples if missing)."
+
+secret: venv ## Ensure SECRET_KEY exists in base.env (does not overwrite)
+	@mkdir -p $(ENV_DIR)
+	@touch $(ENV_DIR)/base.env
+	@if grep -q '^SECRET_KEY=' $(ENV_DIR)/base.env; then \
+		echo "SECRET_KEY already present in $(ENV_DIR)/base.env (leaving as-is)"; \
+	else \
+		SECRET=$$($(PY) -c "import secrets; alphabet='abcdefghijklmnopqrstuvwxyz0123456789!@#$$%^&*(-_=+)'; print(''.join(secrets.choice(alphabet) for _ in range(50)))"); \
+		printf 'SECRET_KEY="%s"\n' "$$SECRET" >> $(ENV_DIR)/base.env; \
+		echo "Added SECRET_KEY to $(ENV_DIR)/base.env"; \
+	fi
+
+secret-rotate: venv ## Rotate SECRET_KEY in base.env (overwrites existing)
+	@mkdir -p $(ENV_DIR)
+	@touch $(ENV_DIR)/base.env
+	@sed -i.bak '/^SECRET_KEY=/d' $(ENV_DIR)/base.env || true
+	@SECRET=$$($(PY) -c "import secrets; alphabet='abcdefghijklmnopqrstuvwxyz0123456789!@#$$%^&*(-_=+)'; print(''.join(secrets.choice(alphabet) for _ in range(50)))"); \
+	printf 'SECRET_KEY="%s"\n' "$$SECRET" >> $(ENV_DIR)/base.env
+	@rm -f $(ENV_DIR)/base.env.bak
+	@echo "Rotated SECRET_KEY in $(ENV_DIR)/base.env"
 
 # ==============================================================================
-# Local Django commands (run on your machine using the local venv)
+# Local Django commands (uses your machine + local Postgres)
 # ==============================================================================
 
-makemigrations: venv ## Local: create migrations
-	ENV=$(ENV) $(DJANGO) DJANGO
+makemigrations: venv env-fix ## Local: create migrations
+	ENV=$(ENV) $(PY) manage.py makemigrations
 
-migrate: venv ## Local: apply migrations
-	ENV=$(ENV) $(DJANGO) DJANGO
+migrate: venv env-fix ## Local: apply migrations
+	ENV=$(ENV) $(PY) manage.py migrate
 
-runserver: venv ## Local: run Django server
-	ENV=$(ENV) $(DJANGO) DJANGO
+runserver: venv env-fix ## Local: run Django server
+	ENV=$(ENV) $(PY) manage.py runserver
 
-shell: venv ## Local: Django shell
-	ENV=$(ENV) $(DJANGO) DJANGO
+shell: venv env-fix ## Local: Django shell
+	ENV=$(ENV) $(PY) manage.py shell
 
-shell-plus: venv ## Local: django-extensions shell_plus
-	ENV=$(ENV) $(DJANGO) DJANGO
+shell-plus: venv env-fix ## Local: django-extensions shell_plus
+	ENV=$(ENV) $(PY) manage.py shell_plus
 
 # ==============================================================================
-# Local quality + tests (fast feedback)
+# Quality + tests
 # ==============================================================================
 
 format: venv ## Local: format with black + ruff
 	$(BLACK) .
 	$(RUFF) check . --fix
 
-lint: venv ## Local: lint with ruff (no fixes)
+lint: venv ## Local: lint with ruff + black check
 	$(RUFF) check .
+	$(BLACK) --check .
 
 lint-fix: venv ## Local: lint with fixes
 	$(RUFF) check . --fix
 
-test: venv ## Local: run pytest (Postgres; uses environments/test.env if present)
+pre-commit-install: venv ## Local: install git hooks
+	$(PRECOMMIT) install
+
+pre-commit-run: venv ## Local: run all hooks
+	$(PRECOMMIT) run --all-files
+
+test: venv env-fix ## Local: run pytest (Postgres; uses environments/test.env if present)
 	ENV=test $(PYTEST)
 
 clean: ## Remove caches
@@ -194,7 +154,7 @@ clean: ## Remove caches
 	rm -rf .mypy_cache
 
 # ==============================================================================
-# Docker stack (runtime source of truth)
+# Docker stack (optional)
 # ==============================================================================
 
 docker-up: env-fix ## Build and start docker services
@@ -207,14 +167,11 @@ docker-logs: ## Follow docker logs
 	docker compose logs -f
 
 # ==============================================================================
-# Docker-native Django commands (recommended for migrations/tests that touch DB)
+# Docker-native Django commands
 # ==============================================================================
 
 d-shell: ## Docker: shell into web container
 	docker compose exec web bash
-
-d-shell-plus: ## Docker: shell_plus inside container
-	docker compose exec -e ENV=$(ENV) web python manage.py shell_plus
 
 d-manage: ## Docker: run manage.py inside web container: make d-manage ARGS="migrate"
 	docker compose exec -e ENV=$(ENV) web python manage.py $(ARGS)

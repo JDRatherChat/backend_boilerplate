@@ -1,12 +1,21 @@
-"""
-Logging configuration.
+"""Logging configuration.
+
+Default posture:
+- Human-readable logs in DEBUG.
+- JSON logs otherwise (works well with Docker + cloud log aggregation).
+
+Override with DJANGO_LOG_FORMAT=human|json.
 """
 
 import os
-from pathlib import Path
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+def _truthy(value: str | None) -> bool:
+    return str(value or "").strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+DEBUG = _truthy(os.getenv("DEBUG"))
+LOG_FORMAT = (os.getenv("DJANGO_LOG_FORMAT") or ("human" if DEBUG else "json")).lower()
 
 LOGGING = {
     "version": 1,
@@ -16,11 +25,16 @@ LOGGING = {
             "format": "[{levelname}] {asctime} {name} | {message}",
             "style": "{",
         },
+        "json": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            # Keep field names stable for log ingestion.
+            "fmt": "%(levelname)s %(asctime)s %(name)s %(message)s",
+        },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": "json" if LOG_FORMAT == "json" else "verbose",
         },
     },
     "root": {

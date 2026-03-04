@@ -2,7 +2,7 @@
 #
 # Notes:
 # - This template standardises on Django 4.2 LTS.
-# - Keep this file *lean*: only runtime deps.
+# - Keep this file *lean*: only runtime deps for an API-first backend.
 
 # ---- Core Django ----
 Django>=4.2,<4.3
@@ -18,26 +18,14 @@ psycopg[binary]
 djangorestframework
 djangorestframework-simplejwt
 drf-spectacular
-djoser
 
 # ---- Logging & Observability ----
+# Sentry is optional at runtime (only initialises when SENTRY_DSN is set).
 sentry-sdk[django]
-structlog
-django-structlog
 python-json-logger
 
-# ---- CORS for Vue frontend during dev ----
+# ---- CORS for local frontend during dev ----
 django-cors-headers
 
-# ---- Developer utilities ----
+# ---- Developer utilities (safe in prod, but optional per project) ----
 django-extensions
-
-# ---- Async / Background work ----
-celery
-redis
-
-# ---- Object storage (S3) ----
-django-storages[boto3]
-
-# ---- Shell Plus ----
-django-extensions>=3.2,<4.0

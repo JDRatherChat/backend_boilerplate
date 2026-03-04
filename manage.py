@@ -2,23 +2,26 @@
 
 Usage:
     ENV=dev python manage.py runserver
-    ENV=test pytest
+    ENV=test python manage.py migrate
+    ENV=prod python manage.py check --deploy
+
 Notes:
 - We use ENV (uppercase) by convention, but we also accept env (lowercase) as an alias.
 - Settings module resolves to: config.settings.<ENV>
+- We load env vars from environments/base.env + environments/<ENV>.env (if present).
 """
+
+from __future__ import annotations
 
 import os
 import sys
 
-
-def _get_env_name(default: str = "dev") -> str:
-    return os.getenv("ENV") or os.getenv("env") or default
+from config.env import load_env_files
 
 
 def main() -> None:
     """Run administrative tasks."""
-    env_name = _get_env_name()
+    env_name = load_env_files()
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"config.settings.{env_name}")
 
     try:

@@ -6,6 +6,15 @@ The format is based on **Keep a Changelog**, and this project adheres to **Seman
 
 ## [Unreleased]
 
+### Changed
+
+
+## [0.0.4] - 2026-03-04
+### Added
+- Default stack is now API-only (removed Celery/Redis from the default template).
+- Simplified docker-compose to just web + Postgres.
+- Requirements pruned to match the lean API profile.
+
 
 ## [0.0.3] - 2026-02-28
 ### Added
@@ -18,7 +27,7 @@ The format is based on **Keep a Changelog**, and this project adheres to **Seman
 ### Added
 - Hybrid workflow documentation (Docker runtime + optional local venv for tooling).
 - Docker-native Make targets (`d-migrate`, `d-test`, `d-startapp`, etc.).
-- Entry scripts: `scripts/run_web.sh`, `scripts/run_worker.sh` for cleaner compose.
+- Entry script: `scripts/run_web.sh` for cleaner compose.
 
 ### Changed
 - Dockerfile installs from pinned `requirements/dev.txt` instead of `dev.in` for reproducible builds.

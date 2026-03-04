@@ -1,23 +1,17 @@
 # config/settings/dev.py
-"""
-Development settings — import sensible defaults from base.
+"""Development settings — import sensible defaults from base.
 
-Hybrid workflow note:
-- Docker loads env vars from environments/base.env + environments/dev.env
-- Local tooling can also load those files if present
+For ENV=dev, we load:
+  - environments/base.env
+  - environments/dev.env
 """
+
+from config.env import load_env_files
+
+load_env_files("dev")
 
 from .base import *  # noqa: F403,F401
 
-import os
-import environ
-
-# Optionally load dev env file.
-_dev_env = os.path.join(BASE_DIR, "environments", "dev.env")  # noqa: F405
-if os.path.exists(_dev_env):
-    environ.Env.read_env(_dev_env)
-
 # Dev overrides (prefer env; fall back to safe dev defaults)
 DEBUG = env.bool("DEBUG", default=True)  # noqa: F405
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])  # noqa: F405 # noqa: F405
-
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])  # noqa: F405

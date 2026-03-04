@@ -18,7 +18,7 @@ class JWTScheme(OpenApiAuthenticationExtension):
 SPECTACULAR_SETTINGS = {
     "TITLE": "Project API",
     "DESCRIPTION": "API documentation for the project",
-    "VERSION": "0.0.1",
+    "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SWAGGER_UI_SETTINGS": {
         "persistAuthorization": True,

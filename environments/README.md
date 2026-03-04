@@ -3,7 +3,15 @@
 This project loads environment variables from:
 
 - `environments/base.env` (shared defaults / secrets)
-- `environments/dev.env` (development overrides)
+- `environments/<ENV>.env` (environment-specific overrides)
+
+Examples shipped in the template:
+
+- `base.env.example`
+- `dev.env.example` (local Postgres)
+- `dev_docker.env.example` (Docker Postgres)
+- `test.env.example`
+- `prod.env.example`
 
 For local development:
 
@@ -12,4 +20,3 @@ For local development:
 3. Run `make secret` to generate a strong `SECRET_KEY` (won’t overwrite existing)
 
 Never commit `*.env` files containing secrets.
-

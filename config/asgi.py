@@ -1,22 +1,20 @@
-"""
-ASGI config for the project.
-
-Exposes the ASGI callable as a module-level variable named `application`.
+"""ASGI config for the project.
 
 Runtime selection:
 - Uses ENV (or env) to choose config.settings.<ENV>
+- Loads env vars from environments/base.env + environments/<ENV>.env
 """
+
+from __future__ import annotations
 
 import os
 
 from django.core.asgi import get_asgi_application
 
-
-def _get_env_name(default: str = "dev") -> str:
-    return os.getenv("ENV") or os.getenv("env") or default
+from config.env import load_env_files
 
 
-env_name = _get_env_name()
+env_name = load_env_files()
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"config.settings.{env_name}")
 
 application = get_asgi_application()

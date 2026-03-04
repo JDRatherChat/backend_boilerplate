@@ -13,7 +13,7 @@ from .apps import DJANGO_APPS, LOCAL_APPS, THIRD_PARTY_APPS
 from .logging import LOGGING  # noqa: F401
 from .restframework import REST_FRAMEWORK  # noqa: F401
 from .api_docs import SPECTACULAR_SETTINGS  # noqa: F401
-from config.celery_app import app # noqa: F401
+from .sentry import init_sentry
 
 # Directories
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -24,9 +24,7 @@ env = environ.Env(
     DEBUG=(bool, False),
     SECRET_KEY=(str, "changeme"),
     ALLOWED_HOSTS=(list, []),
-    DATABASE_URL=(str, "postgres://app:app@127.0.0.1:5432/backend_boilerplate"),
-    REDIS_URL=(str, "redis://localhost:6379/0"),
-)
+    DATABASE_URL=(str, "postgres://app:app@127.0.0.1:5432/backend_boilerplate"),)
 
 # Core settings
 DEBUG = env.bool("DEBUG")
@@ -79,11 +77,19 @@ DATABASES = {
     "default": env.db("DATABASE_URL"),
 }
 
-# Celery / Redis
-CELERY_BROKER_URL = env("REDIS_URL")
-CELERY_RESULT_BACKEND = env("REDIS_URL")
-CELERY_TASK_ALWAYS_EAGER = False
-CELERY_TASK_EAGER_PROPAGATES = True
+# Sentry (error monitoring) - initialises only when SENTRY_DSN is set.
+init_sentry(
+    dsn=env("SENTRY_DSN", default=""),
+    environment=env(
+        "SENTRY_ENVIRONMENT",
+        default=os.getenv("ENV") or os.getenv("env") or "dev",
+    ),
+    release=env("SENTRY_RELEASE", default=""),
+    traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.0),
+    profiles_sample_rate=env.float("SENTRY_PROFILES_SAMPLE_RATE", default=0.0),
+    send_default_pii=env.bool("SENTRY_SEND_DEFAULT_PII", default=False),
+    debug=DEBUG,
+)
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

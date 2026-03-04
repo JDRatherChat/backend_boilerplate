@@ -9,6 +9,10 @@ Production assumes environment variables are provided by the runtime
 
 import os
 
+from config.env import load_env_files
+
+load_env_files("prod")
+
 from .base import *  # noqa: F401,F403
 
 
