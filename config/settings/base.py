@@ -12,7 +12,7 @@ import environ
 from .apps import DJANGO_APPS, LOCAL_APPS, THIRD_PARTY_APPS
 from .logging import LOGGING  # noqa: F401
 from .restframework import REST_FRAMEWORK  # noqa: F401
-
+from config.celery_app import app # noqa: F401
 
 # Directories
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
