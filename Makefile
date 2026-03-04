@@ -40,6 +40,9 @@ UV := uv
 ENV_DIR      := environments
 ENV_FILES    := $(ENV_DIR)/base.env $(ENV_DIR)/dev.env
 
+# Active Django environment (settings module)
+ENV ?= dev
+
 # sed in-place that works on macOS and Linux (creates .bak we later remove)
 SED_INPLACE  := sed -i.bak
 RM_BACKUPS   := rm -f *.bak
@@ -155,19 +158,19 @@ env-fix: ## Create env files from examples if missing (does not overwrite)
 # ==============================================================================
 
 makemigrations: venv ## Local: create migrations
-	$(DJANGO) makemigrations
+	ENV=$(ENV) $(DJANGO) DJANGO
 
 migrate: venv ## Local: apply migrations
-	$(DJANGO) migrate
+	ENV=$(ENV) $(DJANGO) DJANGO
 
 runserver: venv ## Local: run Django server
-	$(DJANGO) runserver
+	ENV=$(ENV) $(DJANGO) DJANGO
 
 shell: venv ## Local: Django shell
-	$(DJANGO) shell
+	ENV=$(ENV) $(DJANGO) DJANGO
 
 shell-plus: venv ## Local: django-extensions shell_plus
-	$(DJANGO) shell_plus
+	ENV=$(ENV) $(DJANGO) DJANGO
 
 # ==============================================================================
 # Local quality + tests (fast feedback)
@@ -183,8 +186,8 @@ lint: venv ## Local: lint with ruff (no fixes)
 lint-fix: venv ## Local: lint with fixes
 	$(RUFF) check . --fix
 
-test: venv ## Local: run pytest
-	$(PYTEST) --ds=config.settings.test
+test: venv ## Local: run pytest (Postgres; uses environments/test.env if present)
+	ENV=test $(PYTEST)
 
 clean: ## Remove caches
 	rm -rf .pytest_cache .ruff_cache __pycache__ */__pycache__ */*/__pycache__
@@ -211,19 +214,19 @@ d-shell: ## Docker: shell into web container
 	docker compose exec web bash
 
 d-shell-plus: ## Docker: shell_plus inside container
-	docker compose exec web python manage.py shell_plus
+	docker compose exec -e ENV=$(ENV) web python manage.py shell_plus
 
 d-manage: ## Docker: run manage.py inside web container: make d-manage ARGS="migrate"
-	docker compose exec web python manage.py $(ARGS)
+	docker compose exec -e ENV=$(ENV) web python manage.py $(ARGS)
 
 d-makemigrations: ## Docker: create migrations
-	docker compose exec web python manage.py makemigrations
+	docker compose exec -e ENV=$(ENV) web python manage.py makemigrations
 
 d-migrate: ## Docker: apply migrations
-	docker compose exec web python manage.py migrate
+	docker compose exec -e ENV=$(ENV) web python manage.py migrate
 
 d-test: ## Docker: run pytest inside container
-	docker compose exec web pytest --ds=config.settings.test
+	docker compose exec -e ENV=test web pytest
 
 d-startapp: ## Docker: create app under apps/: make d-startapp APP=users
 	@test -n "$(APP)" || (echo "APP is required (example: make d-startapp APP=users)" && exit 1)

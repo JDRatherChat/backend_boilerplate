@@ -12,6 +12,7 @@ import environ
 from .apps import DJANGO_APPS, LOCAL_APPS, THIRD_PARTY_APPS
 from .logging import LOGGING  # noqa: F401
 from .restframework import REST_FRAMEWORK  # noqa: F401
+from .api_docs import SPECTACULAR_SETTINGS  # noqa: F401
 from config.celery_app import app # noqa: F401
 
 # Directories
@@ -23,14 +24,9 @@ env = environ.Env(
     DEBUG=(bool, False),
     SECRET_KEY=(str, "changeme"),
     ALLOWED_HOSTS=(list, []),
-    DATABASE_URL=(str, "sqlite:///db.sqlite3"),
+    DATABASE_URL=(str, "postgres://app:app@127.0.0.1:5432/backend_boilerplate"),
     REDIS_URL=(str, "redis://localhost:6379/0"),
 )
-
-# Load env file if present (optional for local dev).
-_base_env = os.path.join(BASE_DIR, "environments", "base.env")
-if os.path.exists(_base_env):
-    environ.Env.read_env(_base_env)
 
 # Core settings
 DEBUG = env.bool("DEBUG")
@@ -78,7 +74,7 @@ TEMPLATES = [
 ]
 
 # Database
-# Prefer DATABASE_URL for Docker/dev/prod; default falls back to sqlite.
+# Prefer DATABASE_URL everywhere; default points at local Postgres.
 DATABASES = {
     "default": env.db("DATABASE_URL"),
 }

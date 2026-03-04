@@ -18,6 +18,7 @@ This keeps your environment reproducible **without slowing down daily coding**.
 - Ruff + Black + Pytest
 - Pip-tools workflow (requirements `*.in` -> pinned `*.txt`)
 - Example env files (`environments/*.env.example`)
+- OpenAPI schema + docs via drf-spectacular (Redoc + Swagger UI)
 
 ---
 
@@ -70,6 +71,15 @@ make test VENV=venv/.acme_portal
 
 ---
 ## Day-to-day commands
+
+### API docs
+
+Once the server is running, you can view:
+
+- OpenAPI schema: `http://127.0.0.1:8000/api/schema/`
+- Redoc: `http://127.0.0.1:8000/api/docs/`
+- Swagger UI: `http://127.0.0.1:8000/api/swagger/`
+
 ### Docker runtime
 
 - Start: ```make docker-up```
