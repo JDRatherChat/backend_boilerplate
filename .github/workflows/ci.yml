@@ -37,7 +37,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_DB: backend_boilerplate_test
           POSTGRES_USER: app

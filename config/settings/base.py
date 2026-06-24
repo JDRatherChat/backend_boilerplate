@@ -75,7 +75,11 @@ TEMPLATES = [
 # Database
 # Prefer DATABASE_URL everywhere; default points at local Postgres.
 DATABASES = {
-    "default": env.db("DATABASE_URL"),
+    "default": {
+        **env.db("DATABASE_URL"),
+        "CONN_MAX_AGE": env.int("CONN_MAX_AGE", default=60),
+        "CONN_HEALTH_CHECKS": True,
+    }
 }
 
 # Sentry (error monitoring) - initialises only when SENTRY_DSN is set.
@@ -99,6 +103,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 12},
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",

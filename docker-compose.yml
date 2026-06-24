@@ -14,7 +14,7 @@ services:
         condition: service_healthy
 
   db:
-    image: postgres:16
+    image: postgres:17
     env_file:
       - environments/base.env
     ports:
