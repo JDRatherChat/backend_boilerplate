@@ -13,7 +13,6 @@ from django.core.asgi import get_asgi_application
 
 from config.env import load_env_files
 
-
 env_name = load_env_files()
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"config.settings.{env_name}")
 
