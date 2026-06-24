@@ -51,17 +51,5 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "date_joined"]
 
     def create(self, validated_data):
-        """
-        Create a new user with hashed password.
-
-        Args:
-            validated_data (dict): Data from the request, including password.
-
-        Returns:
-            CustomUser: The newly created user instance.
-        """
         password = validated_data.pop("password")
-        user = CustomUser.objects.create_user(**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
+        return CustomUser.objects.create_user(password=password, **validated_data)

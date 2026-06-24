@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List
 
 
 DJANGO_APPS = [
@@ -20,13 +19,13 @@ THIRD_PARTY_APPS = [
 ]
 
 
-def discover_local_apps(base_dir: Path) -> List[str]:
+def discover_local_apps(base_dir: Path) -> list[str]:
     apps_dir = base_dir / "apps"
 
     if not apps_dir.exists():
         return []
 
-    discovered: List[str] = []
+    discovered: list[str] = []
 
     for entry in apps_dir.iterdir():
         if not entry.is_dir():
