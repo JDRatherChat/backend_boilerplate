@@ -54,3 +54,6 @@ node_modules/
 
 # MkDocs site output (if used)
 site/
+
+# uv
+.uv/

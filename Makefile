@@ -1,44 +1,23 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-# ============================================================================== 
+# ==============================================================================
 # API-first hybrid workflow
-# - Local venv: IDE + tooling (ruff/black/pytest/pre-commit)
+# - Local venv: IDE + tooling (ruff/pytest/pre-commit)
 # - Docker: optional runtime (web + postgres)
-# ============================================================================== 
+# ==============================================================================
 
-# -----------------------------
-# Virtualenv-aware tool shims
-# -----------------------------
-VENV ?= .venv
-
-ifeq ($(OS),Windows_NT)
-PY := $(VENV)/Scripts/python.exe
-else
-PY := $(VENV)/bin/python
-endif
-
-PIP          := $(PY) -m pip
-PIPTOOLS     := $(PY) -m piptools
-PIP_COMPILE  := $(PIPTOOLS) compile
-PIP_SYNC     := $(PIPTOOLS) sync
-BLACK        := $(PY) -m black
-RUFF         := $(PY) -m ruff
-PYTEST       := $(PY) -m pytest
-PRECOMMIT    := $(PY) -m pre_commit
-
-# Active Django environment (maps to config.settings.<ENV>)
+UV := uv
 ENV ?= dev
-
-# Env files (used by both local runs and Docker)
 ENV_DIR := environments
 
 .PHONY: help \
-	venv requirements sync install \
+	install lock upgrade \
 	env-fix secret secret-rotate \
 	makemigrations migrate runserver shell shell-plus \
-	format lint lint-fix test clean \
+	format lint \
 	pre-commit-install pre-commit-run \
+	test clean \
 	docker-up docker-down docker-logs \
 	d-shell d-manage d-makemigrations d-migrate d-test d-startapp
 
@@ -46,115 +25,95 @@ help: ## Show available targets
 	@grep -E '^[a-zA-Z0-9_.-]+:.*?## ' $(MAKEFILE_LIST) | sed 's/:.*##/\t-/' | sort
 
 # ==============================================================================
-# Local venv + deps
+# Dependencies (uv)
 # ==============================================================================
 
-venv: ## Create local virtualenv if missing (defaults to VENV=.venv)
-	@if [ -f "$(PY)" ]; then \
-		echo "Venv already exists at $(VENV)"; \
-	else \
-		echo "Creating virtual environment at $(VENV)..."; \
-		python -m venv $(VENV); \
-		echo "Upgrading pip/setuptools/wheel..."; \
-		$(PIP) install -U pip setuptools wheel; \
-		echo "Installing pip-tools..."; \
-		$(PIP) install -U pip-tools; \
-	fi
+install: ## Bootstrap local dev environment
+	$(UV) sync --dev
 
-requirements: venv ## Compile requirements with pip-tools (base.in/dev.in -> base.txt/dev.txt)
-	@echo "Compiling base requirements -> requirements/base.txt ..."
-	$(PIP_COMPILE) requirements/base.in -o requirements/base.txt
-	@echo "Compiling dev requirements  -> requirements/dev.txt ..."
-	$(PIP_COMPILE) requirements/dev.in  -o requirements/dev.txt
+lock: ## Recompile uv.lock from pyproject.toml (pin all deps)
+	$(UV) lock
 
-sync: venv ## Install pinned deps (dev includes base)
-	@echo "Syncing pinned dependencies from requirements/dev.txt ..."
-	$(PIP_SYNC) requirements/dev.txt
-	@echo "Dependencies installed"
-
-install: sync ## Bootstrap local dev environment (alias)
+upgrade: ## Upgrade all deps to latest allowed versions and relock
+	$(UV) lock --upgrade
 
 # ==============================================================================
-# Env utilities
+# Env utilities (unchanged)
 # ==============================================================================
 
-env-fix: ## Create env files from examples if missing (does not overwrite)
+env-fix: ## Create env files from examples if missing
 	@mkdir -p $(ENV_DIR)
 	@[ -f $(ENV_DIR)/base.env ]       || cp $(ENV_DIR)/base.env.example       $(ENV_DIR)/base.env
 	@[ -f $(ENV_DIR)/dev.env ]        || cp $(ENV_DIR)/dev.env.example        $(ENV_DIR)/dev.env
 	@[ -f $(ENV_DIR)/dev_docker.env ] || cp $(ENV_DIR)/dev_docker.env.example $(ENV_DIR)/dev_docker.env
 	@[ -f $(ENV_DIR)/test.env ]       || cp $(ENV_DIR)/test.env.example       $(ENV_DIR)/test.env
-	@echo "Ensured env files exist (copied from examples if missing)."
+	@echo "Ensured env files exist."
 
-secret: venv ## Ensure SECRET_KEY exists in base.env (does not overwrite)
+secret: ## Ensure SECRET_KEY exists in base.env (does not overwrite)
 	@mkdir -p $(ENV_DIR)
 	@touch $(ENV_DIR)/base.env
 	@if grep -q '^SECRET_KEY=' $(ENV_DIR)/base.env; then \
-		echo "SECRET_KEY already present in $(ENV_DIR)/base.env (leaving as-is)"; \
+		echo "SECRET_KEY already present (leaving as-is)"; \
 	else \
-		SECRET=$$($(PY) -c "import secrets; alphabet='abcdefghijklmnopqrstuvwxyz0123456789!@#$$%^&*(-_=+)'; print(''.join(secrets.choice(alphabet) for _ in range(50)))"); \
+		SECRET=$$($(UV) run python -c "import secrets; alphabet='abcdefghijklmnopqrstuvwxyz0123456789!@#$$%^&*(-_=+)'; print(''.join(secrets.choice(alphabet) for _ in range(50)))"); \
 		printf 'SECRET_KEY="%s"\n' "$$SECRET" >> $(ENV_DIR)/base.env; \
 		echo "Added SECRET_KEY to $(ENV_DIR)/base.env"; \
 	fi
 
-secret-rotate: venv ## Rotate SECRET_KEY in base.env (overwrites existing)
+secret-rotate: ## Rotate SECRET_KEY in base.env
 	@mkdir -p $(ENV_DIR)
 	@touch $(ENV_DIR)/base.env
 	@sed -i.bak '/^SECRET_KEY=/d' $(ENV_DIR)/base.env || true
-	@SECRET=$$($(PY) -c "import secrets; alphabet='abcdefghijklmnopqrstuvwxyz0123456789!@#$$%^&*(-_=+)'; print(''.join(secrets.choice(alphabet) for _ in range(50)))"); \
+	@SECRET=$$($(UV) run python -c "import secrets; alphabet='abcdefghijklmnopqrstuvwxyz0123456789!@#$$%^&*(-_=+)'; print(''.join(secrets.choice(alphabet) for _ in range(50)))"); \
 	printf 'SECRET_KEY="%s"\n' "$$SECRET" >> $(ENV_DIR)/base.env
 	@rm -f $(ENV_DIR)/base.env.bak
-	@echo "Rotated SECRET_KEY in $(ENV_DIR)/base.env"
+	@echo "Rotated SECRET_KEY."
 
 # ==============================================================================
-# Local Django commands (uses your machine + local Postgres)
+# Local Django commands
 # ==============================================================================
 
-makemigrations: venv env-fix ## Local: create migrations
-	ENV=$(ENV) $(PY) manage.py makemigrations
+makemigrations: env-fix ## Local: create migrations
+	ENV=$(ENV) $(UV) run manage.py makemigrations
 
-migrate: venv env-fix ## Local: apply migrations
-	ENV=$(ENV) $(PY) manage.py migrate
+migrate: env-fix ## Local: apply migrations
+	ENV=$(ENV) $(UV) run manage.py migrate
 
-runserver: venv env-fix ## Local: run Django server
-	ENV=$(ENV) $(PY) manage.py runserver
+runserver: env-fix ## Local: run Django dev server
+	ENV=$(ENV) $(UV) run manage.py runserver
 
-shell: venv env-fix ## Local: Django shell
-	ENV=$(ENV) $(PY) manage.py shell
+shell: env-fix ## Local: Django shell
+	ENV=$(ENV) $(UV) run manage.py shell
 
-shell-plus: venv env-fix ## Local: django-extensions shell_plus
-	ENV=$(ENV) $(PY) manage.py shell_plus
+shell-plus: env-fix ## Local: shell_plus (django-extensions)
+	ENV=$(ENV) $(UV) run manage.py shell_plus
 
 # ==============================================================================
-# Quality + tests
+# Code quality
 # ==============================================================================
 
-format: venv ## Local: format with black + ruff
-	$(BLACK) .
-	$(RUFF) check . --fix
+format: ## Format with ruff format + auto-fix lint
+	$(UV) run ruff format .
+	$(UV) run ruff check . --fix
 
-lint: venv ## Local: lint with ruff + black check
-	$(RUFF) check .
-	$(BLACK) --check .
+lint: ## Check formatting and linting
+	$(UV) run ruff format --check .
+	$(UV) run ruff check .
 
-lint-fix: venv ## Local: lint with fixes
-	$(RUFF) check . --fix
+pre-commit-install: ## Install git hooks
+	$(UV) run pre-commit install
 
-pre-commit-install: venv ## Local: install git hooks
-	$(PRECOMMIT) install
+pre-commit-run: ## Run all pre-commit hooks
+	$(UV) run pre-commit run --all-files
 
-pre-commit-run: venv ## Local: run all hooks
-	$(PRECOMMIT) run --all-files
-
-test: venv env-fix ## Local: run pytest (Postgres; uses environments/test.env if present)
-	ENV=test $(PYTEST)
+test: env-fix ## Run pytest
+	ENV=test $(UV) run pytest
 
 clean: ## Remove caches
-	rm -rf .pytest_cache .ruff_cache __pycache__ */__pycache__ */*/__pycache__
-	rm -rf .mypy_cache
+	rm -rf .pytest_cache .ruff_cache __pycache__ */__pycache__ */*/__pycache__ .mypy_cache
 
 # ==============================================================================
-# Docker stack (optional)
+# Docker stack (keep existing targets unchanged below this line)
 # ==============================================================================
 
 docker-up: env-fix ## Build and start docker services
