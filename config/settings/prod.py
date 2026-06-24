@@ -13,7 +13,6 @@ load_env_files("prod")
 
 from .base import *  # noqa: F401,F403
 
-
 DEBUG = False
 
 # If ALLOWED_HOSTS is not provided, default to empty to avoid accidental exposure.

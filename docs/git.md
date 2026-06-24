@@ -77,7 +77,7 @@ git rebase main
 ```
 
 ---
-## Undo / recovery 
+## Undo / recovery
 ### Unstage a file
 ```bash
 git restore --staged path/to/file
@@ -115,7 +115,7 @@ git show <commit_sha>
  Use tags to mark releases like v0.0.2.
 
 ### Create an annotated tag (recommended)
-```bash 
+```bash
 git tag -a v0.0.2 -m "Release v0.0.2"
 ```
 
@@ -147,7 +147,7 @@ git tag -d v0.0.2
 ```
 
 Remote:
-```bash 
+```bash
 git push origin :refs/tags/v0.0.2
 ```
 

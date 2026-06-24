@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

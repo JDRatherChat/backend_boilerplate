@@ -21,7 +21,7 @@ The format is based on **Keep a Changelog**, and this project adheres to **Seman
 - Auto-discovery for `LOCAL_APPS` from the `/apps` folder (e.g. `apps.custom_user`, `apps.users`) to reduce manual settings edits.
 
 ### Fixed
-- Issue 
+- Issue
 
 ## [0.0.2] - 2026-02-28
 ### Added

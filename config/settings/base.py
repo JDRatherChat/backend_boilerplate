@@ -24,7 +24,8 @@ env = environ.Env(
     DEBUG=(bool, False),
     SECRET_KEY=(str, "changeme"),
     ALLOWED_HOSTS=(list, []),
-    DATABASE_URL=(str, "postgres://app:app@127.0.0.1:5432/backend_boilerplate"),)
+    DATABASE_URL=(str, "postgres://app:app@127.0.0.1:5432/backend_boilerplate"),
+)
 
 # Core settings
 DEBUG = env.bool("DEBUG")
